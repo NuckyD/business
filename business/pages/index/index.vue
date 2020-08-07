@@ -28,38 +28,6 @@
 				shopif:true,
 				shop:[]
 			}
-		},
-		onShow() {
-			this.shopdata()
-		},
-		methods: {
-			shopdata(){
-				wx.cloud.callFunction({
-				  name:'shopdata',
-				})
-				.then((res)=>{
-					// console.log(res)
-					let shopDatas = res.result.result.data
-					console.log(shopDatas)
-					if(shopDatas.length == 0){
-						let staimg = '../static/img/noimage.png'
-						let title = '你还没有发布商品'
-						this.compstate(staimg,title)
-					}else{
-						this.shop = shopDatas
-						this.shopif = false
-					}
-				})
-				.catch((err)=>{
-					console.log(err)
-				})
-			},
-			// 被调用的审核组件
-			compstate(staimg,title){
-				this.$nextTick(()=>{   //dom更新循环结束之后的延迟回调
-					this.$refs.mon.init(staimg,title)
-				})
-			}
 		}
 	}
 </script>

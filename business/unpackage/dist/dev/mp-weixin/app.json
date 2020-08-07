@@ -1,9 +1,10 @@
 {
   "pages": [
+    "pages/authentication/authentication",
     "pages/index/index",
     "pages/release/release",
-    "pages/my/my",
-    "pages/authentication/authentication"
+    "pages/my/my"
+    
   ],
   "subPackages": [],
   "window": {
@@ -39,5 +40,5 @@
     ]
   },
   "usingComponents": {},
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap28.json"
 }

@@ -1,8 +1,8 @@
 // 上传图片
-var uploadimage = function(many){
+var uploadimage = function(quantity){
 	return new Promise((resolve,reject)=>{
 		uni.chooseImage({
-			count: many, //默认9
+			count: quantity, //默认9
 			sizeType: ['compressed'], //可以指定是原图还是压缩图，默认二者都有
 			sourceType: ['album'], //从相册选择
 			success: (res) => {
