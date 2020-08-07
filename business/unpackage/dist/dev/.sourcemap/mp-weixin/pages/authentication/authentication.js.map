@@ -1,0 +1,1 @@
+{"version":3,"sources":["webpack:///F:/shunshun/business/main.js"],"names":["createPage","Page"],"mappings":";;;;;;;;;;kDAAA;AACA;AACA,uH;AACAA,UAAU,CAACC,uBAAD,CAAV,C","file":"pages/authentication/authentication.js","sourcesContent":["import 'uni-pages';\nimport Vue from 'vue'\nimport Page from './pages/authentication/authentication.vue'\ncreatePage(Page)"],"sourceRoot":""}
