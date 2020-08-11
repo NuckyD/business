@@ -80,7 +80,7 @@
 			<view class="distance"></view>
 			
 			<!-- 提交 -->
-			<view class="release" :class="{ active: isActive }" @click="flagg && suBmitd()">
+			<view class="release" :class="{ active: isActive }" @click="flagg && suBmited()">
 			提交
 			</view>
 		</view>
@@ -99,15 +99,24 @@
 
 <script>
 	import {uploadimage} from '../../common/list.js'
+	//引进上传图片云储存方法
+	import {uploads} from '../../common/uploads.js'
+	//引入审核提示
+	import stateing from '../../element/stateing.vue'
+	//操作数据库
+	var db = wx.cloud.database()
+	var authentication = db.collection('authentication')
+	var resou = 'authentication'//云存储地址名
 	export default{
 		components:{
+			stateing
 		},
 		data() {
 			return {
 				relend:false,
 				reldata:'正在提交...请勿关闭该页面',
 				// 整个页面
-				pageauth:true,
+				pageauth:false,
 				// 判断公用上传参数
 				top:'top',
 				logo:'logo',
@@ -136,6 +145,122 @@
 						this.topimg = res
 					}
 				})
+			},
+			
+			suBmited(){
+				this.relend = true
+				this.userdata()
+			},
+			
+			async userdata(){
+				//上传工商营业执照
+				let staticImg = await this.staticImg()
+				//上传店铺信息
+				let logoticImg = await this.logoticImg()
+				//上传所有数据到数据库
+				await this.cloudData(staticImg, logoticImg)
+			},
+			
+			staticImg(){
+				return new Promise((resolve,reject) => {
+					uploads(this.topimg,resou)
+					.then((res) => {
+						resolve(...res)
+					})
+				})
+			},
+			logoticImg(){
+				return new Promise((resolve,reject) => {
+					uploads(this.topimg,resou)
+					.then((res) => {
+						resolve(...res)
+					})
+				})
+			},
+			cloudData(staticImg, logoticImg){
+				let datas = {
+					enterprise: this.enterprise,
+					topimg: staticImg,
+					logoimg: logoticImg,
+					account: this.account,
+					bank: this.bank,
+					name: this.name,
+					telephone: this.telephone,
+					idcard: this.idcard,
+				}
+				db.collection('authentication').add({
+					data:{
+						storeDetail: datas,
+						examine: 'Being'
+					}
+				}).then((res) => {
+					// 提交成功隐藏提示和整个页面，显示正在审核
+					this.relend = false
+					this.pageauth = false
+					// 弹出模态框
+					let staimg = '../static/img/zhengzai.svg'
+					let title = '正在审核中'
+					this.compstate(staimg,title)
+				}).catch((err) => {
+					console.log(err)
+				})
+			},
+			
+			// 被调用的审核组件
+			compstate(staimg,title){
+				this.$nextTick(()=>{   //dom更新循环结束之后的延迟回调
+					this.$refs.mon.init(staimg,title)
+				})
+			},
+			
+			stateDatas(){
+				authentication.get()
+				.then((res) => {
+					if(res.data.length == 0){
+						this.pageauth = true
+					}else{
+						let examine = res.data[0].examine
+						if(examine){
+							this.pageauth = false
+							if(examine == 'Being'){
+								let staimg = '../static/img/zhengzai.svg'
+								let title = '正在审核中'
+								this.compstate(staimg,title)
+							}else if(examine == 'Success'){
+								let staimg = '../static/img/success.svg'
+								let title = '认证成功'
+								this.compstate(staimg,title)
+							}else if(examine == 'Fail'){
+								let staimg = '../static/img/fail.svg'
+								let title = '认证不通过'
+								this.compstate(staimg,title)
+							}		
+						}
+					}
+				}).catch((err) => {
+					console.log(err)
+				})
+			}
+		},
+		
+		mounted(){
+			//审核状态
+			this.stateDatas()
+		},
+		
+		computed:{
+			testdata(){
+				if(this.enterprise != '' && this.topimg.length != 0 
+				   && this.logoimg.length != 0 && this.account != '' 
+				   && this.bank != '' && this.name != '' 
+				   && this.telephone != '' && this.idcard != '')
+				   {
+					  this.isActive = true
+					  this.flagg = true
+				   } else {
+					   this.isActive = false
+					   this.flagg = false
+				   }
 			}
 		}
 	}

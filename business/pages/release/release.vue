@@ -129,8 +129,16 @@
 </template>
 
 <script>
+	//上传图片到本地
+	import {uploadimage} from '../../common/list.js'
 	// 引入审核组件
 	import stateing from '../../element/stateing.vue'
+	//上传图片到运存储
+	import {uploads} from '../../common/uploads.js'
+	var db = wx.cloud.database()
+	var authentication = db.collection('authentication')
+	// 上传静态资源的云存储文件
+	var resou = 'commodity'
 	export default{
 		components:{
 			stateing
@@ -166,6 +174,227 @@
 				uploadcov:'',
 				uploadbanner:[],
 				uploaddetails:[]
+			}
+		},
+		methods:{
+			
+			// 用户是否已认证
+			ifUser(){
+				authentication.get()
+				.then((res)=>{
+					// console.log(res)
+					var username = res.data[0]
+					if(res.data.length == 0 || username.examine != 'Success'){
+						// 没有认证
+						//console.log('没有认证')
+						this.pageauth = false
+						let staimg = '../static/img/tishidat.svg'
+						let title = '商家认证完成后才可以发布商品哦'
+						this.compstate(staimg,title)
+					}else if(username.examine == 'Success'){
+						//console.log('已认证')
+						this.pageauth = true
+						// 取到商家logo和企业名称
+						let releuser = res.data[0].storeDetail
+						//console.log(releuser)
+						this.enterprise = releuser.enterprise
+						this.logoimg = releuser.logoimg
+					}
+				})
+				.catch((err)=>{
+					console.log(err)
+				})
+			},
+			
+			// 被调用的审核组件
+			compstate(staimg,title){
+				this.$nextTick(()=>{   //dom更新循环结束之后的延迟回调
+					this.$refs.mon.init(staimg,title)
+				})
+			},
+			// 出发地
+			Determine(){
+				if(this.citys != ''){
+					this.setdata.push(this.citys)
+					let newarr = Array.from(new Set(this.setdata))
+					this.setdata = newarr
+				}
+			},
+			// 删除城市
+			delecity(index){
+				this.setdata.splice(index, 1)
+			},
+			// 上传图片
+			uploadImg(imgs,many){
+				console.log(imgs)
+				uploadimage(many)
+				.then((res)=>{
+					console.log(res)
+					if(imgs == 'fengmian'){
+						// 封面
+						this.Coverimg = res
+					}else if(imgs == 'lunbo'){
+						// 轮播
+						this.Banner.push(...res)
+					}else if(imgs == 'xiangqing'){
+						this.Details.push(...res)
+					}
+					
+				})
+				.catch((err)=>{
+					console.log(err)
+				})
+			},
+			
+			// 删除图片
+			deleteImg(index,deleteis){
+				if(deleteis == 'fengmian'){
+					// 删除封面
+					this.Coverimg.splice(index, 1)
+				}else if(deleteis == 'lunbo'){
+					// 删除轮播
+					this.Banner.splice(index, 1)
+				}else if(deleteis == 'xiangqing'){
+					// 删除详情
+					this.Details.splice(index, 1)
+				}
+			},
+			
+			// 提交
+			suBmitd(){
+				console.log('提交')
+				this.relend = true
+				this.usercommod()
+			},
+			
+			// 上传商品数据
+			async usercommod(){
+				// 等待上传封面图
+				let coverimgdata = await this.covfun()
+				console.log(coverimgdata)
+				this.uploadcov = coverimgdata
+				// 等待上传商品轮播图
+				let bannerimgdata = await this.bannerfun()
+				console.log(bannerimgdata)
+				this.uploadbanner = bannerimgdata
+				// 等待上传商品图文介绍
+				let detailsimgdata = await this.detailsfun()
+				console.log(detailsimgdata)
+				this.uploaddetails = detailsimgdata
+				// 上传所有数据到数据库
+				await this.wholefun()
+				
+			},
+			
+			// 等待上传封面图到云存储
+			covfun(){
+				return new Promise((resolve,reject)=>{
+					uploads(this.Coverimg,resou)
+					.then((res)=>{
+						// console.log(res)
+						resolve(...res)
+					})
+					.catch((err)=>{
+						console.log(err)
+						reject(err)
+					})
+				})
+			},
+			
+			// 等待上传商品轮播图到云存储
+			bannerfun(){
+				return new Promise((resolve,reject)=>{
+					uploads(this.Banner,resou)
+					.then((res)=>{
+						resolve(res.reverse())
+					})
+					.catch((err)=>{
+						console.log(err)
+						reject(err)
+					})
+				})
+			},
+			
+			// 等待上传商品图文介绍
+			detailsfun(){
+				return new Promise((resolve,reject)=>{
+					uploads(this.Details,resou)
+					.then((res)=>{
+						resolve(res.reverse())
+					})
+					.catch((err)=>{
+						console.log(err)
+						reject(err)
+					})
+				})
+			},
+			
+			// 上传所有数据到数据库
+			wholefun(){
+					// 以对象形式上传
+					let wholedata = {
+						enterprise:this.enterprise,
+						logoimg:this.logoimg,
+						title:this.title,
+						describe:this.describe,
+						label:this.label,
+						typedata:this.typedata,
+						price:Number(this.price),
+						setdata: this.setdata,
+						destination:this.destination,
+						Coverimg:this.uploadcov,
+						Details:this.uploaddetails,
+						Banner:this.uploadbanner,
+					}
+					db.collection('commodity').add({
+					  // data 字段表示需新增的 JSON 数据
+					  data: {
+						wholedata:wholedata
+					  }
+					})
+					.then((res)=>{
+						console.log(res)
+						// 全部提交成功，清除更新提示
+						this.reldata = '发布商品成功'
+						this.title = ''
+						this.describe = ''
+						this.label = ''
+						this.typedata = ''
+						this.price = ''
+						this.setdata = ''
+						this.destination = ''
+						this.Coverimg.length = ''
+						this.Banner = ''
+						this.Details = ''
+						this.citys = ''
+						setTimeout(()=>{
+							this.relend = false
+						},1500)
+					})
+					.catch((err)=>{
+						console.log(err)
+					})
+				
+			}
+		},
+		
+		// 商家是否已认证
+		onShow() {
+			this.ifUser()
+		},
+		
+		// 判断
+		computed:{
+			testdata(){
+				if(this.title !='' && this.describe != '' && this.label != '' && this.typedata != '' && this.price != '' && this.setdata.length != 0 && this.destination != '' && this.Coverimg.length != 0 && this.Banner.length != 0 && this.Details.length != 0){
+					console.log('不空')
+					this.isActive = true
+					this.flagg = true
+				}else{
+					console.log('空')
+					this.isActive = false
+					this.flagg = false
+				}
 			}
 		}
 	}

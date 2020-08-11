@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "商家入驻认证",
-  "usingComponents": {}
+  "usingComponents": {
+    "stateing": "/element/stateing"
+  }
 }
