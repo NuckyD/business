@@ -135,7 +135,7 @@ __webpack_require__.r(__webpack_exports__);
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var stateing = function stateing() {__webpack_require__.e(/*! require.ensure | element/stateing */ "element/stateing").then((function () {return resolve(__webpack_require__(/*! ../../element/stateing.vue */ 47));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};var _default =
+Object.defineProperty(exports, "__esModule", { value: true });exports.default = void 0;var stateing = function stateing() {__webpack_require__.e(/*! require.ensure | element/stateing */ "element/stateing").then((function () {return resolve(__webpack_require__(/*! ../../element/stateing.vue */ 47));}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);};
 
 
 
@@ -156,6 +156,8 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
 
 
 
+var db = wx.cloud.database();
+var commodity = db.collection('commodity');var _default =
 {
   components: {
     stateing: stateing },
@@ -165,6 +167,40 @@ Object.defineProperty(exports, "__esModule", { value: true });exports.default = 
       shopif: true,
       shop: [] };
 
+  },
+  methods: {
+
+    // 用户是否已认证
+    ifUser: function ifUser() {var _this = this;
+      commodity.get().
+      then(function (res) {
+        console.log(res);
+        var username = res.data[0];
+        if (res.data.length === 0) {
+          //console.log('没有认证')
+          _this.shopif = true;
+          var staimg = '../static/img/noimage.png';
+          var title = '你还没有发布商品';
+          _this.compstate(staimg, title);
+        } else {
+          _this.shopif = false;
+          _this.shop = res.data;
+        }
+      }).
+      catch(function (err) {
+        console.log(err);
+      });
+    },
+
+    // 被调用的审核状态
+    compstate: function compstate(staimg, title) {var _this2 = this;
+      this.$nextTick(function () {//dom更新循环结束之后的延迟回调
+        _this2.$refs.mon.init(staimg, title);
+      });
+    } },
+
+  onShow: function onShow() {
+    this.ifUser();
   } };exports.default = _default;
 
 /***/ }),

@@ -206,7 +206,7 @@
 				})
 			},
 			
-			// 被调用的审核组件
+			// 被调用的审核状态
 			compstate(staimg,title){
 				this.$nextTick(()=>{   //dom更新循环结束之后的延迟回调
 					this.$refs.mon.init(staimg,title)
@@ -331,50 +331,49 @@
 			
 			// 上传所有数据到数据库
 			wholefun(){
-					// 以对象形式上传
-					let wholedata = {
-						enterprise:this.enterprise,
-						logoimg:this.logoimg,
-						title:this.title,
-						describe:this.describe,
-						label:this.label,
-						typedata:this.typedata,
-						price:Number(this.price),
-						setdata: this.setdata,
-						destination:this.destination,
-						Coverimg:this.uploadcov,
-						Details:this.uploaddetails,
-						Banner:this.uploadbanner,
-					}
-					db.collection('commodity').add({
-					  // data 字段表示需新增的 JSON 数据
-					  data: {
-						wholedata:wholedata
-					  }
-					})
-					.then((res)=>{
-						console.log(res)
-						// 全部提交成功，清除更新提示
-						this.reldata = '发布商品成功'
-						this.title = ''
-						this.describe = ''
-						this.label = ''
-						this.typedata = ''
-						this.price = ''
-						this.setdata = ''
-						this.destination = ''
-						this.Coverimg.length = ''
-						this.Banner = ''
-						this.Details = ''
-						this.citys = ''
-						setTimeout(()=>{
-							this.relend = false
-						},1500)
-					})
-					.catch((err)=>{
-						console.log(err)
-					})
-				
+				// 以对象形式上传
+				let wholedata = {
+					enterprise:this.enterprise,
+					logoimg:this.logoimg,
+					title:this.title,
+					describe:this.describe,
+					label:this.label,
+					typedata:this.typedata,
+					price:Number(this.price),
+					setdata: this.setdata,
+					destination:this.destination,
+					Coverimg:this.uploadcov,
+					Details:this.uploaddetails,
+					Banner:this.uploadbanner,
+				}
+				db.collection('commodity').add({
+				  // data 字段表示需新增的 JSON 数据
+				  data: {
+					wholedata:wholedata
+				  }
+				})
+				.then((res)=>{
+					console.log(res)
+					// 全部提交成功，清除更新提示
+					this.reldata = '发布商品成功'
+					this.title = ''
+					this.describe = ''
+					this.label = ''
+					this.typedata = ''
+					this.price = ''
+					this.setdata = ''
+					this.destination = ''
+					this.Coverimg.length = ''
+					this.Banner = ''
+					this.Details = ''
+					this.citys = ''
+					setTimeout(()=>{
+						this.relend = false
+					},1500)
+				})
+				.catch((err)=>{
+					console.log(err)
+				})
 			}
 		},
 		

@@ -19,6 +19,8 @@
 <script> 
 	// 引入审核组件
 	import stateing from '../../element/stateing.vue'
+	var db = wx.cloud.database()
+	var commodity = db.collection('commodity')
 	export default {
 		components:{
 			stateing
@@ -28,6 +30,40 @@
 				shopif:true,
 				shop:[]
 			}
+		},
+		methods:{
+			
+			// 用户是否已认证
+			ifUser(){
+				commodity.get()
+				.then((res)=>{
+					console.log(res)
+					var username = res.data[0]
+					if(res.data.length === 0){
+						//console.log('没有认证')
+						this.shopif = true
+						let staimg = '../static/img/noimage.png'
+						let title = '你还没有发布商品'
+						this.compstate(staimg,title)
+					} else {
+						this.shopif = false
+						this.shop = res.data
+					}
+				})
+				.catch((err)=>{
+					console.log(err)
+				})
+			},
+			
+			// 被调用的审核状态
+			compstate(staimg,title){
+				this.$nextTick(()=>{   //dom更新循环结束之后的延迟回调
+					this.$refs.mon.init(staimg,title)
+				})
+			}
+		},
+		onShow() {
+			this.ifUser()
 		}
 	}
 </script>

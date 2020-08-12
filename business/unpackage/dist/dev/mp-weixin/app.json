@@ -1,7 +1,8 @@
 {
   "pages": [
-    "pages/release/release",
     "pages/index/index",
+    "pages/release/release",
+    
     
     "pages/my/my",
     "pages/authentication/authentication"
@@ -40,5 +41,5 @@
     ]
   },
   "usingComponents": {},
-  "sitemapLocation": "sitemap18.json"
+  "sitemapLocation": "sitemap12.json"
 }
